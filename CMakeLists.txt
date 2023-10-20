@@ -22,6 +22,6 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 # Only the crypto library is needed.
 #list(APPEND THIRDPARTY_LIBS ${OPENSSL_CRYPTO_LIBRARIES})
 
-set(encfs_SOURCES "encfs.cc" PARENT_SCOPE)
+set(encfs_SOURCES "encfs.cc encfs_test.cc" PARENT_SCOPE)
 set(encfs_LIBS "crypto" PARENT_SCOPE)
 set(encfs_CMAKE_EXE_LINKER_FLAGS "-u encfs_reg" PARENT_SCOPE)

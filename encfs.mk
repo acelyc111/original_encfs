@@ -15,6 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-encfs_SOURCES = encfs.cc
+encfs_SOURCES = encfs.cc encfs_test.cc
 encfs_HEADERS = encfs.h
 encfs_LDFLAGS = -lcrypto -u encfs_reg

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "encryption/encryption.h"
+#include "encfs.h"
 
 #include <gtest/gtest.h>
 
