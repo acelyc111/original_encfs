@@ -16,13 +16,14 @@
 // under the License.
 
 #pragma once
+
 #ifndef ROCKSDB_LITE
-#include <openssl/aes.h>
-#include <openssl/evp.h>
 
 #include <string>
 
-#include "encryption/encryption.h"
+#include <openssl/aes.h>
+#include <openssl/evp.h>
+
 #include "rocksdb/env_encryption.h"
 #include "util/string_util.h"
 

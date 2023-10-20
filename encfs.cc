@@ -17,23 +17,82 @@
 
 #ifndef ROCKSDB_LITE
 
-#include "encryption/encryption.h"
+#include "encfs.h"
+
+#include <algorithm>
+#include <limits>
 
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
 
-#include <algorithm>
-#include <limits>
-
-#include "encryption/encryption.h"
 #include "file/filename.h"
 #include "port/likely.h"
 #include "port/port.h"
+#include "rocksdb/utilities/object_registry.h"
 #include "rocksdb/utilities/options_type.h"
 #include "test_util/sync_point.h"
 
 namespace ROCKSDB_NAMESPACE {
+
+extern "C" FactoryFunc<EncryptionProvider> encfs_reg;
+
+// Match "AES" and "AES://test"
+auto func = ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
+    ObjectLibrary::PatternEntry(
+        encryption::AESEncryptionProvider::kClassName(), true)
+        .AddSuffix("://test"),
+    [](const std::string& uri, std::unique_ptr<EncryptionProvider>* guard,
+       std::string* errmsg) {
+      errmsg->clear();
+      std::string instance_key = "test_instance_key";
+      encryption::EncryptionMethod method =
+          encryption::EncryptionMethod::kAES128_CTR;
+      encryption::AESEncryptionProvider* provider = nullptr;
+
+      // Parse the uri to arguments to construct an AESEncryptionProvider.
+      do {
+        if (uri == encryption::AESEncryptionProvider::kClassName()) {
+          break;
+        }
+        if (EndsWith(uri, "://test")) {
+          break;
+        }
+        auto type_args = StringSplit(uri, ':');
+        if (type_args.size() != 2) {
+          *errmsg = "Invalid EncryptionProvider URI: " + uri;
+          break;
+        }
+        auto args = StringSplit(type_args[1], ',');
+        if (args.size() != 2) {
+          *errmsg = "Invalid EncryptionProvider URI: " + uri;
+          break;
+        }
+        instance_key = args[0];
+        method = encryption::EncryptionMethodStringToEnum(args[1]);
+      } while (false);
+
+      // Construct the provider if no error occurs.
+      if (errmsg->empty()) {
+        // TODO(yingchun): check instance_key
+        assert(method != encryption::EncryptionMethod::kUnknown);
+        provider =
+            new encryption::AESEncryptionProvider(instance_key, method);
+      }
+
+      guard->reset(provider);
+      return guard->get();
+    });
+
+// Match "AES:<instance_key>,<EncryptionMethod>"
+FactoryFunc<EncryptionProvider> encfs_reg =
+    ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
+        ObjectLibrary::PatternEntry(
+            encryption::AESEncryptionProvider::kClassName(), false)
+            .AddSeparator(":")
+            .AddSeparator(","),
+        func);
+
 namespace encryption {
 
 inline size_t KeySize(EncryptionMethod method) {
