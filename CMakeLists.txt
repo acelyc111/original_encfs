@@ -18,10 +18,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
-# Only the crypto library is needed.
-#list(APPEND THIRDPARTY_LIBS ${OPENSSL_CRYPTO_LIBRARIES})
+set(encfs_LIBS ${OPENSSL_CRYPTO_LIBRARY} PARENT_SCOPE)
 
-set(encfs_SOURCES "encfs.cc encfs_test.cc" PARENT_SCOPE)
-set(encfs_LIBS "crypto" PARENT_SCOPE)
+set(encfs_SOURCES "encfs.cc" PARENT_SCOPE)
+set(encfs_HEADERS "encfs.h" PARENT_SCOPE)
 set(encfs_CMAKE_EXE_LINKER_FLAGS "-u encfs_reg" PARENT_SCOPE)
+set(encfs_TESTS "encfs_test.cc" PARENT_SCOPE)
