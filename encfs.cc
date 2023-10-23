@@ -37,27 +37,19 @@ namespace ROCKSDB_NAMESPACE {
 
 extern "C" FactoryFunc<EncryptionProvider> encfs_reg;
 
-// Match "AES" and "AES://test"
 auto func = ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
     ObjectLibrary::PatternEntry(
-        encryption::AESEncryptionProvider::kClassName(), true)
-        .AddSuffix("://test"),
+        encryption::AESEncryptionProvider::kClassName(), true),
     [](const std::string& uri, std::unique_ptr<EncryptionProvider>* guard,
        std::string* errmsg) {
       errmsg->clear();
-      std::string instance_key = "test_instance_key";
+      std::string instance_key;
       encryption::EncryptionMethod method =
           encryption::EncryptionMethod::kAES128_CTR;
       encryption::AESEncryptionProvider* provider = nullptr;
 
       // Parse the uri to arguments to construct an AESEncryptionProvider.
       do {
-        if (uri == encryption::AESEncryptionProvider::kClassName()) {
-          break;
-        }
-        if (EndsWith(uri, "://test")) {
-          break;
-        }
         auto type_args = StringSplit(uri, ':');
         if (type_args.size() != 2) {
           *errmsg = "Invalid EncryptionProvider URI: " + uri;
@@ -74,7 +66,7 @@ auto func = ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
 
       // Construct the provider if no error occurs.
       if (errmsg->empty()) {
-        // TODO(yingchun): check instance_key
+        assert(!instance_key.empty());
         assert(method != encryption::EncryptionMethod::kUnknown);
         provider =
             new encryption::AESEncryptionProvider(instance_key, method);
