@@ -95,7 +95,7 @@ FactoryFunc<EncryptionProvider> encfs_reg =
 
 namespace encryption {
 
-inline size_t KeySize(EncryptionMethod method) {
+size_t KeySize(EncryptionMethod method) {
   switch (method) {
     case EncryptionMethod::kAES128_CTR:
       return 16;
