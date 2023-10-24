@@ -156,9 +156,7 @@ const EVP_CIPHER* GetEVPCipher(EncryptionMethod method) {
       //      return EVP_aes_256_ecb();
     case EncryptionMethod::kSM4_CTR:
 #if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(OPENSSL_NO_SM4)
-      return Status::InvalidArgument(
-          "Unsupport SM4 encryption method under OpenSSL version: " +
-          std::string(OPENSSL_VERSION_TEXT));
+      return nullptr;
 #else
       // Openssl support SM4 after 1.1.1 release version.
       return EVP_sm4_ctr();
@@ -194,7 +192,7 @@ std::string GetOpenSSLErrors() {
 }
 
 namespace {
-const char* const kEncryptionHeaderMagic = "pegsenc";
+const char* const kEncryptionHeaderMagic = "encrypt";
 const int kEncryptionHeaderMagicLength = 7;
 
 uint64_t GetBigEndian64(const unsigned char* src) {
