@@ -27,12 +27,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build
-      working-directory: /__w/encfs/encfs/rocksdb
+    - name: Install gflags
       run: apt-get update -y && apt-get install -y libgflags-dev
     - name: Unity build
+      working-directory: /__w/encfs/encfs/rocksdb
       run: make V=1 -j4 unity_test
-    - run: make V=1 -j4 -k check-headers
+    - name: Check headers
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: make V=1 -j4 -k check-headers
     - uses: "./.github/actions/post-steps"
   build-linux-mini-crashtest:
     runs-on: ubuntu-latest
