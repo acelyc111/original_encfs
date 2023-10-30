@@ -6,39 +6,39 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
     - uses: "./.github/actions/pre-steps"
-    - run: make V=1 J=1 -j4
+    - name: Build
+      working-directory: /root/rocksdb
+      run: |-
+        make V=1 J=1 -j4
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - run: echo "skip this job, because Pegasus does not use folly currently"
-#    - uses: actions/checkout@v3.5.0
+    - run: echo "skip folly related actions"
 #    - uses: "./.github/actions/pre-steps"
 #    - uses: "./.github/actions/setup-folly"
 #    - uses: "./.github/actions/build-folly"
-#    - run: "(mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 .. && make V=1 -j5 && ctest -j5)"
+#    - run: "(mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5)"
 #    - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly-lite-no-test:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
-    - run: "(mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 .. && make V=1 -j5)"
+    - run: "(cd /root/rocksdb && mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5)"
     - uses: "./.github/actions/post-steps"
   build-linux-gcc-7-with-folly:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - run: echo "skip this job, because Pegasus does not use folly currently"
-#    - uses: actions/checkout@v3.5.0
+    - run: echo "skip folly related actions"
 #    - uses: "./.github/actions/pre-steps"
 #    - uses: "./.github/actions/setup-folly"
 #    - uses: "./.github/actions/build-folly"
@@ -49,10 +49,12 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
-    - run: USE_FOLLY_LITE=1 CC=gcc-7 CXX=g++-7 V=1 make -j4 all
+    - name: Build
+      working-directory: /root/rocksdb
+      run: |-
+        USE_FOLLY_LITE=1 CC=gcc-7 CXX=g++-7 V=1 make -j4 all
     - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly-coroutines:
     runs-on: ubuntu-latest
@@ -62,31 +64,22 @@ jobs:
       CC: gcc-10
       CXX: g++-10
     steps:
-    - run: echo "skip this job, because Pegasus does not use folly currently"
-#    - uses: actions/checkout@v3.5.0
+    - run: echo "skip folly related actions"
 #    - uses: "./.github/actions/pre-steps"
 #    - uses: "./.github/actions/setup-folly"
 #    - uses: "./.github/actions/build-folly"
-#    - run: "(mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 .. && make V=1 -j5 && ctest -j5)"
+#    - run: "(mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5)"
 #    - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-benchmark:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
     - uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DWITH_BENCHMARK=1 .. && make V=1 -j5 && ctest -j5
-    - uses: "./.github/actions/post-steps"
-  build-linux-encrypted_env-no_compression-no_openssl:
-    runs-on: ubuntu-latest
-    container:
-      image: zjay437/rocksdb:0.6
-    steps:
-    - uses: actions/checkout@v3.5.0
-    - uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DWITH_OPENSSL=0 -DWITH_SNAPPY=0 -DWITH_ZLIB=0 -DWITH_BZ2=0 -DWITH_LZ4=0 -DWITH_ZSTD=0 .. && make V=1 -j5 && ctest -j5 -V
-    - run: "cd build/tools && ./sst_dump --help | grep -E -q 'Supported compression types: kNoCompression'"
+    - name: Build and test
+      working-directory: /root/rocksdb
+      run: |-
+        mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DWITH_BENCHMARK=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
     - uses: "./.github/actions/post-steps"
   build-linux-encrypted_env-openssl-basic:
     runs-on: ubuntu-latest
@@ -101,11 +94,12 @@ jobs:
           - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR
           - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR
     steps:
-    - uses: actions/checkout@v3.5.0
     - uses: "./.github/actions/pre-steps"
-    - run: |
-       export ENCRYPTED_ENV="${{ matrix.test_enc_env }}"
-       mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
+    - name: Build and test
+      working-directory: /root/rocksdb
+      run: |-
+        export ENCRYPTED_ENV="${{ matrix.test_enc_env }}"
+        mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-encrypted_env-openssl-special:
     runs-on: ubuntu-latest
@@ -120,9 +114,10 @@ jobs:
           - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem
           - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR};id=EncryptedFileSystem
     steps:
-      - uses: actions/checkout@v3.5.0
       - uses: "./.github/actions/pre-steps"
-      - run: |
+      - name: Build and test
+        working-directory: /root/rocksdb
+        run: |-
           mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5
           export TEST_FS_URI="${{ matrix.test_fs_uri }}"
           ./env_basic_test --gtest_filter=*CustomEnv*

@@ -4,5 +4,5 @@ runs:
   steps:
   - uses: "./.github/actions/pre-steps"
   - name: Linux build for benchmarks
-    run: ROCKSDB_PLUGINS="encfs" make V=1 J=4 -j4 release
+    run: make V=1 J=4 -j4 release
     shell: bash
