@@ -154,7 +154,7 @@ class AESEncryptionProvider : public EncryptionProvider {
 
   Status AddCipher(const std::string& /*descriptor*/, const char* /*cipher*/,
                    size_t /*len*/, bool /*for_write*/) override {
-    return Status::NotSupported();
+        return Status::NotSupported();
   }
 
   Status CreateCipherStream(

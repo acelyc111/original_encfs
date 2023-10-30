@@ -12,34 +12,29 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
+    - uses: "./.github/actions/pre-steps"
     - name: Fetch from upstream
       run: |
         git remote add upstream https://github.com/acelyc111/encfs.git && git fetch upstream
-
     - name: Where am I
       run: |
         echo git status && git status
         echo "git remote -v" && git remote -v
         echo git branch && git branch
-
     - name: Setup Python
       uses: actions/setup-python@v1
-
     - name: Install Dependencies
       run: python -m pip install --upgrade pip
-
     - name: Install argparse
       run: pip install argparse
-
     - name: Download clang-format-diff.py
       run: wget https://raw.githubusercontent.com/llvm/llvm-project/release/12.x/clang/tools/clang-format/clang-format-diff.py
-
     - name: Check format
+      working-directory: /__w/encfs/encfs/rocksdb
       run: VERBOSE_CHECK=1 make check-format
-
     - name: Compare buckify output
+      working-directory: /__w/encfs/encfs/rocksdb
       run: make check-buck-targets
-
     - name: Simple source code checks
+      working-directory: /__w/encfs/encfs/rocksdb
       run: make check-sources
