@@ -28,24 +28,37 @@ set -ex
 #mkdir build && cd build
 #cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs ..
 
-uris=("provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR};id=EncryptedFileSystem"
-      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES192CTR};id=EncryptedFileSystem"
-      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem"
-      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR};id=EncryptedFileSystem")
-for uri in ${uris[*]}; do
+# 2. run encfs_test
+./encfs_test
+
+# 3. Run tests and tools
+opts=("id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR"
+      "id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES192CTR"
+      "id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR"
+      "id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR")
+for opt in ${opts[*]}; do
+  echo "${opt}"
+
+  # 3.1. Run all tests
+  # Set env ENCRYPTED_ENV and run all tests
+  export ENCRYPTED_ENV=${opt}
+  ctest -j32 -V
+  unset ENCRYPTED_ENV
+
+  uri='provider={${uri}};id=EncryptedFileSystem'
   echo "${uri}"
 
-  # Set env (select 1 of the 4)
+  # 3.2. Run env_basic_test and env_test tests
+  # Set env TEST_FS_URI and run env_basic_test and env_test
   export TEST_FS_URI=${uri}
-
-  # Run unit tests
   ./env_basic_test --gtest_filter=*CustomEnv*
   ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+  unset TEST_FS_URI
 
-  # Run benchmarks
+  # 3.3. Run benchmarks
   ./db_bench --fs_uri="${uri}" --benchmarks="fillseq,readrandom,readseq" --compression_type=lz4 --num=1000000
 
-  # Run ldb tools
+  # 3.4. Run ldb tools
   ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ put k v
   ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ get k
   ls -l /tmp/rocksdbtest-1000/dbbench | grep "log" | awk '{print $NF}' | xargs -i ./tools/ldb --fs_uri="${uri}" dump_wal --walfile=/tmp/rocksdbtest-1000/dbbench/{} | head
@@ -54,9 +67,6 @@ for uri in ${uris[*]}; do
   ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ manifest_dump | head
   ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ list_live_files_metadata | head
 done
-
-# Unset the env
-unset TEST_FS_URI
 ```
 
 ## Tool usage
