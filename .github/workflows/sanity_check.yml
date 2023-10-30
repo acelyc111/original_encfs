@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout feature branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Fetch from upstream
       run: |
-        git remote add upstream https://github.com/facebook/rocksdb.git && git fetch upstream
+        git remote add upstream https://github.com/acelyc111/encfs.git && git fetch upstream
 
     - name: Where am I
       run: |
