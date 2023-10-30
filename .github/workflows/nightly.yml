@@ -9,9 +9,10 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: test
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         export TEST_TMPDIR=/dev/shm/rocksdb
         rm -rf /dev/shm/rocksdb
@@ -22,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - run: echo "skip this job, Github Actions free plan does not support arm64 yet"
-#    - uses: actions/checkout@v3.5.0
+#    - uses: actions/checkout@v4
 #    - uses: "./.github/actions/pre-steps"
 #    - uses: "./.github/actions/install-gflags"
 #    - run: make V=1 J=4 -j4 check
@@ -32,9 +33,11 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: DEBUG_LEVEL=0 make -j4 run_microbench
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: DEBUG_LEVEL=0 make -j4 run_microbench
     - uses: "./.github/actions/post-steps"
   build-linux-non-shm:
     runs-on: ubuntu-latest
@@ -43,16 +46,18 @@ jobs:
     env:
       TEST_TMPDIR: "/tmp/rocksdb_test_tmp"
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: make V=1 -j4 check
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: make V=1 -j4 check
     - uses: "./.github/actions/post-steps"
   build-linux-clang-13-asan-ubsan-with-folly:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
     - uses: "./.github/actions/build-folly"
@@ -63,7 +68,9 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: PORTABLE=1 make V=1 -j4 valgrind_test
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: PORTABLE=1 make V=1 -j4 valgrind_test
     - uses: "./.github/actions/post-steps"

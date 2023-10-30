@@ -6,7 +6,7 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Set Java Environment
       run: |-
@@ -15,14 +15,16 @@ jobs:
         which java && java -version
         which javac && javac -version
     - name: Test RocksDBJava
-      run: make V=1 J=4 -j4 jtest
+      run: |-
+        cd /__w/encfs/encfs/rocksdb
+        make V=1 J=4 -j4 jtest
     - uses: "./.github/actions/post-steps"
   build-linux-java-static:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Set Java Environment
       run: |-
@@ -31,7 +33,9 @@ jobs:
         which java && java -version
         which javac && javac -version
     - name: Build RocksDBJava Static Library
-      run: make V=1 J=4 -j4 rocksdbjavastatic
+      run: |-
+        cd /__w/encfs/encfs/rocksdb
+        make V=1 J=4 -j4 rocksdbjavastatic
     - uses: "./.github/actions/post-steps"
   build-macos-java:
     runs-on: macos-11
@@ -39,7 +43,7 @@ jobs:
       JAVA_HOME: "/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home"
       ROCKSDB_DISABLE_JEMALLOC: 1
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: maxim-lobanov/setup-xcode@v1.5.1
       with:
         xcode-version: 12.5.1
@@ -54,14 +58,16 @@ jobs:
         which java && java -version
         which javac && javac -version
     - name: Test RocksDBJava
-      run: make V=1 J=4 -j4 jtest
+      run: |-
+        cd /__w/encfs/encfs/rocksdb
+        make V=1 J=4 -j4 jtest
     - uses: "./.github/actions/post-steps"
   build-macos-java-static:
     runs-on: macos-11
     env:
       JAVA_HOME: "/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home"
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: maxim-lobanov/setup-xcode@v1.5.1
       with:
         xcode-version: 12.5.1
@@ -103,7 +109,7 @@ jobs:
     env:
       JAVA_HOME: "/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home"
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: maxim-lobanov/setup-xcode@v1.5.1
       with:
         xcode-version: 12.5.1

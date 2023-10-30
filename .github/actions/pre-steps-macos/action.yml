@@ -3,15 +3,13 @@ runs:
   using: composite
   steps:
   - name: Clone rocksdb
-    working-directory: ${{ github.workspace }}
     run: |
       git clone --depth 1 --branch v8.5.3 https://github.com/facebook/rocksdb.git
-      cd rocksdb && pwd
     shell: bash
   - uses: actions/checkout@v4
     with:
       # Relative path under $GITHUB_WORKSPACE to place the repository
-      path: rocksdb/plugin
+      path: rocksdb/plugin/encfs
   - name: Setup Environment Variables
     run: |-
       echo "ROCKSDB_PLUGINS=encfs" >> $GITHUB_ENV

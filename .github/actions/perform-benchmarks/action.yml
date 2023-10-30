@@ -3,7 +3,9 @@ runs:
   using: composite
   steps:
   - name: Test low-variance benchmarks
-    run: "./tools/benchmark_ci.py --db_dir /tmp/rocksdb-benchmark-datadir --output_dir /tmp/benchmark-results --num_keys 20000000"
+    run: |
+      cd /__w/encfs/encfs/rocksdb
+      ./tools/benchmark_ci.py --db_dir /tmp/rocksdb-benchmark-datadir --output_dir /tmp/benchmark-results --num_keys 20000000
     env:
       LD_LIBRARY_PATH: "/usr/local/lib"
       DURATION_RO: 300

@@ -4,5 +4,7 @@ runs:
   steps:
   - uses: "./.github/actions/pre-steps"
   - name: Linux build for benchmarks
-    run: make V=1 J=4 -j4 release
+    run: |
+      cd /__w/encfs/encfs/rocksdb
+      make V=1 J=4 -j4 release
     shell: bash

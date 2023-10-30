@@ -3,5 +3,7 @@ runs:
   using: composite
   steps:
   - name: Checkout folly sources
-    run: make checkout_folly -j4
+    run: |
+      cd /__w/encfs/encfs/rocksdb
+      make checkout_folly -j4
     shell: bash

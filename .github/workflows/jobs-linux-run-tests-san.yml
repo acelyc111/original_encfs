@@ -6,9 +6,11 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DWITH_ASAN=ON .. && make V=1 -j5 && ctest -j5 -V
+    - name: Build rocksdb lib
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DWITH_ASAN=ON .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-ubsan:
     runs-on: ubuntu-latest
@@ -18,9 +20,11 @@ jobs:
       CC: clang-13
       CXX: clang++-13
     steps:
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DWITH_UBSAN=ON .. && make V=1 -j5 && ctest -j5 -V
+    - name: Build rocksdb lib
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DWITH_UBSAN=ON .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-mini-tsan:
     runs-on: ubuntu-latest
@@ -28,8 +32,10 @@ jobs:
       image: zjay437/rocksdb:0.6
     steps:
     # Just build partial tests to reduce disk space usage
-    - uses: actions/checkout@v3.5.0
-    - uses: "./.github/actions/pre-steps"
+    - uses: actions/checkout@v4
+    - name: Build rocksdb lib
+      working-directory: /__w/encfs/encfs/rocksdb
+      uses: "./.github/actions/pre-steps"
     - run: mkdir build && cd build && cmake -DWITH_TSAN=ON .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./encfs_test
     - uses: "./.github/actions/post-steps"
   build-linux-static_lib-alt_namespace-status_checked:
@@ -41,7 +47,9 @@ jobs:
       CXX: clang++-13
     steps:
     # Just build encfs_test to reduce disk space usage
-    - uses: actions/checkout@v3.5.0
+    - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DASSERT_STATUS_CHECKED=ON -DROCKSDB_BUILD_SHARED=OFF -DROCKSDB_NAMESPACE=alternative_rocksdb_ns -DMODIFY_NPHASH=1 -DTEST_UINT128_COMPAT=1 .. && make V=1 -j5 encfs_test && ./encfs_test
+    - name: Build rocksdb lib
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DASSERT_STATUS_CHECKED=ON -DROCKSDB_BUILD_SHARED=OFF -DROCKSDB_NAMESPACE=alternative_rocksdb_ns -DMODIFY_NPHASH=1 -DTEST_UINT128_COMPAT=1 .. && make V=1 -j5 encfs_test && ./encfs_test
     - uses: "./.github/actions/post-steps"
