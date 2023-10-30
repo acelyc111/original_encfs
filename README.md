@@ -18,6 +18,47 @@ $ popd
 $ make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="encfs" make -j48 db_bench install
 ```
 
+Build by cmake and check the functionality:
+```
+#!/usr/bin/env bash
+
+set -ex
+
+# 1. build
+#mkdir build && cd build
+#cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs ..
+
+uris=("provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR};id=EncryptedFileSystem"
+      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES192CTR};id=EncryptedFileSystem"
+      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem"
+      "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR};id=EncryptedFileSystem")
+for uri in ${uris[*]}; do
+  echo "${uri}"
+
+  # Set env (select 1 of the 4)
+  export TEST_FS_URI=${uri}
+
+  # Run unit tests
+  ./env_basic_test --gtest_filter=*CustomEnv*
+  ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+
+  # Run benchmarks
+  ./db_bench --fs_uri="${uri}" --benchmarks="fillseq,readrandom,readseq" --compression_type=lz4 --num=1000000
+
+  # Run ldb tools
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ put k v
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ get k
+  ls -l /tmp/rocksdbtest-1000/dbbench | grep "log" | awk '{print $NF}' | xargs -i ./tools/ldb --fs_uri="${uri}" dump_wal --walfile=/tmp/rocksdbtest-1000/dbbench/{} | head
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ scan --hex | head
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ dump --hex | head
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ manifest_dump | head
+  ./tools/ldb --fs_uri="${uri}" --db=/tmp/rocksdbtest-1000/dbbench/ list_live_files_metadata | head
+done
+
+# Unset the env
+unset TEST_FS_URI
+```
+
 ## Tool usage
 
 For RocksDB binaries (such as the `db_bench` we built above), the plugin can be enabled through configuration. `db_bench` in particular takes a `--fs_uri` where we can specify "encfs" , which is the name registered by this plugin. Example usage:
