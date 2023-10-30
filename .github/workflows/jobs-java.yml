@@ -59,7 +59,7 @@ jobs:
         which javac && javac -version
     - name: Test RocksDBJava
       run: |-
-        cd /__w/encfs/encfs/rocksdb
+        cd /Users/runner/work/encfs/encfs/rocksdb
         make V=1 J=4 -j4 jtest
     - uses: "./.github/actions/post-steps"
   build-macos-java-static:

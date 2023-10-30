@@ -64,7 +64,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: CC=clang-13 CXX=clang++-13 USE_CLANG=1 make -j4 static_lib
     - name: Build fuzzers
@@ -77,7 +77,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: CC=clang CXX=clang++ USE_CLANG=1 PORTABLE=1 make V=1 -j4 all
     - uses: "./.github/actions/post-steps"
@@ -88,7 +88,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: CC=clang-13 CXX=clang++-13 USE_CLANG=1 make -j4 all microbench
     - uses: "./.github/actions/post-steps"
@@ -99,7 +99,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: CC=gcc-8 CXX=g++-8 V=1 make -j4 all
     - uses: "./.github/actions/post-steps"
@@ -110,7 +110,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: CC=gcc-10 CXX=g++-10 V=1 ROCKSDB_CXX_STANDARD=c++20 make -j4 all
     - uses: "./.github/actions/post-steps"
@@ -121,12 +121,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build rocksdb lib
+    - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
       run: LIB_MODE=static CC=gcc-11 CXX=g++-11 && mkdir build && cd build && cmake -DWITH_BENCHMARK=ON .. && make V=1 -j4
     - uses: "./.github/actions/post-steps"
   build-linux-arm-cmake-no_test_run:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
     env:
       JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-arm64"
     steps:
