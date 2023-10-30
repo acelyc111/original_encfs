@@ -18,7 +18,14 @@ runs:
   - uses: actions/checkout@v4
     with:
       # Relative path under $GITHUB_WORKSPACE to place the repository
-      path: rocksdb/plugin
+      path: encfs/rocksdb/plugin
+  - name: ls
+    run: |
+      cd ${{ github.workspace }} && pwd && ls -l
+      cd ${{ github.workspace }}/rocksdb && pwd && ls -l
+      cd ${{ github.workspace }}/rocksdb/plugin && pwd && ls -l
+      cd ${{ github.workspace }}/rocksdb/plugin/encfs && pwd && ls -l
+    shell: bash
   - name: Setup Environment Variables
     run: |-
       echo "ROCKSDB_PLUGINS=encfs" >> $GITHUB_ENV
