@@ -7,20 +7,21 @@ jobs:
   check:
     name: Check TARGETS file and code format
     runs-on: ubuntu-latest
-    container:
-      image: zjay437/rocksdb:0.6
     steps:
-    - name: Checkout feature branch
-      uses: actions/checkout@v4
+    - name: Clone rocksdb
+      run: |
+        git clone --depth 1 --branch v8.5.3 https://github.com/facebook/rocksdb.git
+      shell: bash
+    - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-    - uses: "./.github/actions/pre-steps"
+        # Relative path under $GITHUB_WORKSPACE to place the repository
+        path: rocksdb/plugin/encfs
     - name: Fetch from upstream
-      working-directory: /__w/encfs/encfs/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb/plugin/encfs
       run: |
         git remote add upstream https://github.com/acelyc111/encfs.git && git fetch upstream
     - name: Setup Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
     - name: Install Dependencies
       run: python -m pip install --upgrade pip
     - name: Install argparse
