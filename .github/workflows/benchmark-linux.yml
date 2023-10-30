@@ -1,0 +1,13 @@
+name: benchmark-linux
+on:
+  schedule:
+  - cron: 0 * * * *
+#   # 'filters' was not transformed because there is no suitable equivalent in GitHub Actions
+jobs:
+  benchmark-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/build-for-benchmarks"
+    - uses: "./.github/actions/perform-benchmarks"
+    - uses: "./.github/actions/post-benchmarks"

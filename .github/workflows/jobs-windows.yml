@@ -1,0 +1,47 @@
+name: jobs-windows
+on: [pull_request]
+jobs:
+  build-windows-vs2022:
+    runs-on: windows-2022
+    env:
+      THIRDPARTY_HOME: C:/Users/circleci/thirdparty
+      CMAKE_HOME: C:/Program Files/CMake
+      CMAKE_BIN: C:/Program Files/CMake/bin/cmake.exe
+      SNAPPY_HOME: C:/Users/circleci/thirdparty/snappy-1.1.8
+      SNAPPY_INCLUDE: C:/Users/circleci/thirdparty/snappy-1.1.8;C:/Users/circleci/thirdparty/snappy-1.1.8/build
+      SNAPPY_LIB_DEBUG: C:/Users/circleci/thirdparty/snappy-1.1.8/build/Debug/snappy.lib
+      CMAKE_GENERATOR: Visual Studio 17 2022
+    steps:
+    - run: echo "skip this job, Pegasus does not support Windows currently"
+#    - uses: actions/checkout@v3.5.0
+#    - uses: "./.github/actions/windows-build-steps"
+  build-windows-vs2019:
+    runs-on: windows-2019
+    env:
+      THIRDPARTY_HOME: C:/Users/circleci/thirdparty
+      CMAKE_HOME: C:/Program Files/CMake
+      CMAKE_BIN: C:/Program Files/CMake/bin/cmake.exe
+      SNAPPY_HOME: C:/Users/circleci/thirdparty/snappy-1.1.8
+      SNAPPY_INCLUDE: C:/Users/circleci/thirdparty/snappy-1.1.8;C:/Users/circleci/thirdparty/snappy-1.1.8/build
+      SNAPPY_LIB_DEBUG: C:/Users/circleci/thirdparty/snappy-1.1.8/build/Debug/snappy.lib
+      CMAKE_GENERATOR: Visual Studio 16 2019
+    steps:
+    - run: echo "skip this job, Pegasus does not support Windows currently"
+#    - uses: actions/checkout@v3.5.0
+#    - uses: "./.github/actions/windows-build-steps"
+  build-cmake-mingw:
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/pre-steps"
+    - run: update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+    - name: Build cmake-mingw
+      run: |-
+        export PATH=$JAVA_HOME/bin:$PATH
+        echo "JAVA_HOME=${JAVA_HOME}"
+        which java && java -version
+        which javac && javac -version
+        mkdir build && cd build && cmake -DJNI=1 -DWITH_GFLAGS=OFF .. -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_SYSTEM_NAME=Windows && make -j4 rocksdb rocksdbjni
+    - uses: "./.github/actions/post-steps"

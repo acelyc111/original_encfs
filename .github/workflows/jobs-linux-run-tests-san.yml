@@ -1,0 +1,47 @@
+name: jobs-linux-run-tests-san
+on: [pull_request]
+jobs:
+  build-linux-clang10-asan:
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/pre-steps"
+    - run: mkdir build && cd build && cmake -DWITH_ASAN=ON .. && make V=1 -j5 && ctest -j5 -V
+    - uses: "./.github/actions/post-steps"
+  build-linux-clang10-ubsan:
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
+    env:
+      CC: clang-13
+      CXX: clang++-13
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/pre-steps"
+    - run: mkdir build && cd build && cmake -DWITH_UBSAN=ON .. && make V=1 -j5 && ctest -j5 -V
+    - uses: "./.github/actions/post-steps"
+  build-linux-clang10-mini-tsan:
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
+    steps:
+    # Just build partial tests to reduce disk space usage
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/pre-steps"
+    - run: mkdir build && cd build && cmake -DWITH_TSAN=ON .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./db_encryption_test
+    - uses: "./.github/actions/post-steps"
+  build-linux-static_lib-alt_namespace-status_checked:
+    runs-on: ubuntu-latest
+    container:
+      image: zjay437/rocksdb:0.6
+    env:
+      CC: clang-13
+      CXX: clang++-13
+    steps:
+    # Just build db_encryption_test to reduce disk space usage
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/pre-steps"
+    - run: mkdir build && cd build && cmake -DASSERT_STATUS_CHECKED=ON -DROCKSDB_BUILD_SHARED=OFF -DROCKSDB_NAMESPACE=alternative_rocksdb_ns -DMODIFY_NPHASH=1 -DTEST_UINT128_COMPAT=1 .. && make V=1 -j5 db_encryption_test && ./db_encryption_test
+    - uses: "./.github/actions/post-steps"

@@ -1,0 +1,12 @@
+name: jobs-linux-arm
+on: [pull_request]
+jobs:
+  build-linux-arm:
+    runs-on: ubuntu-20.04
+    steps:
+    - run: echo "skip this job, Github Actions free plan does not support arm64 yet"
+#    - uses: actions/checkout@v3.5.0
+#    - uses: "./.github/actions/pre-steps"
+#    - uses: "./.github/actions/install-gflags"
+#    - run: ROCKSDBTESTS_PLATFORM_DEPENDENT=only make V=1 J=4 -j4 all_but_some_tests check_some
+#    - uses: "./.github/actions/post-steps"
