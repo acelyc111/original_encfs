@@ -15,20 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef ROCKSDB_LITE
-
 #include "encfs.h"
-
-#include <algorithm>
-#include <limits>
 
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
 
+#include <algorithm>
+#include <limits>
+
 #include "file/filename.h"
 #include "port/likely.h"
 #include "port/port.h"
+#include "rocksdb/configurable.h"
 #include "rocksdb/utilities/object_registry.h"
 #include "rocksdb/utilities/options_type.h"
 #include "test_util/sync_point.h"
@@ -36,56 +35,17 @@
 namespace ROCKSDB_NAMESPACE {
 
 extern "C" FactoryFunc<EncryptionProvider> encfs_reg;
-
-auto func = ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
-    ObjectLibrary::PatternEntry(
-        encryption::AESEncryptionProvider::kClassName(), true),
-    [](const std::string& uri, std::unique_ptr<EncryptionProvider>* guard,
-       std::string* errmsg) {
-      errmsg->clear();
-      std::string instance_key;
-      encryption::EncryptionMethod method =
-          encryption::EncryptionMethod::kAES128_CTR;
-      encryption::AESEncryptionProvider* provider = nullptr;
-
-      // Parse the uri to arguments to construct an AESEncryptionProvider.
-      do {
-        auto type_args = StringSplit(uri, ':');
-        if (type_args.size() != 2) {
-          *errmsg = "Invalid EncryptionProvider URI: " + uri;
-          break;
-        }
-        auto args = StringSplit(type_args[1], ',');
-        if (args.size() != 2) {
-          *errmsg = "Invalid EncryptionProvider URI: " + uri;
-          break;
-        }
-        instance_key = args[0];
-        method = encryption::EncryptionMethodStringToEnum(args[1]);
-      } while (false);
-
-      // Construct the provider if no error occurs.
-      if (errmsg->empty()) {
-        assert(!instance_key.empty());
-        assert(method != encryption::EncryptionMethod::kUnknown);
-        provider =
-            new encryption::AESEncryptionProvider(instance_key, method);
-      }
-
-      guard->reset(provider);
-      return guard->get();
-    });
-
-// Match "AES:<instance_key>,<EncryptionMethod>"
+// Match "AES"
 FactoryFunc<EncryptionProvider> encfs_reg =
     ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
         ObjectLibrary::PatternEntry(
-            encryption::AESEncryptionProvider::kClassName(), false)
-            .AddSeparator(":")
-            .AddSeparator(","),
-        func);
-
-namespace encryption {
+            AESEncryptionProvider::kClassName(), true),
+        [](const std::string& /*uri*/,
+           std::unique_ptr<EncryptionProvider>* guard,
+           std::string* /*errmsg*/) {
+          *guard = std::make_unique<AESEncryptionProvider>();
+          return guard->get();
+        });
 
 size_t KeySize(EncryptionMethod method) {
   switch (method) {
@@ -103,7 +63,7 @@ size_t KeySize(EncryptionMethod method) {
 #endif
     default:
       return 0;
-  };
+  }
 }
 
 size_t BlockSize(EncryptionMethod method) {
@@ -127,19 +87,6 @@ size_t BlockSize(EncryptionMethod method) {
   }
 }
 
-EncryptionMethod EncryptionMethodStringToEnum(const std::string& method) {
-  if (!strcasecmp(method.c_str(), "AES128CTR")) {
-    return ROCKSDB_NAMESPACE::encryption::EncryptionMethod::kAES128_CTR;
-  } else if (!strcasecmp(method.c_str(), "AES192CTR")) {
-    return ROCKSDB_NAMESPACE::encryption::EncryptionMethod::kAES192_CTR;
-  } else if (!strcasecmp(method.c_str(), "AES256CTR")) {
-    return ROCKSDB_NAMESPACE::encryption::EncryptionMethod::kAES256_CTR;
-  } else if (!strcasecmp(method.c_str(), "SM4CTR")) {
-    return ROCKSDB_NAMESPACE::encryption::EncryptionMethod::kSM4_CTR;
-  }
-  return ROCKSDB_NAMESPACE::encryption::EncryptionMethod::kUnknown;
-}
-
 const EVP_CIPHER* GetEVPCipher(EncryptionMethod method) {
   switch (method) {
     case EncryptionMethod::kAES128_CTR:
@@ -148,12 +95,6 @@ const EVP_CIPHER* GetEVPCipher(EncryptionMethod method) {
       return EVP_aes_192_ctr();
     case EncryptionMethod::kAES256_CTR:
       return EVP_aes_256_ctr();
-      //    case EncryptionMethod::AES128ECB:
-      //      return EVP_aes_128_ecb();
-      //    case EncryptionMethod::AES192ECB:
-      //      return EVP_aes_192_ecb();
-      //    case EncryptionMethod::AES256ECB:
-      //      return EVP_aes_256_ecb();
     case EncryptionMethod::kSM4_CTR:
 #if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(OPENSSL_NO_SM4)
       return nullptr;
@@ -225,11 +166,10 @@ void PutBigEndian64(uint64_t value, unsigned char* dst) {
   }
 }
 
-Status GenerateFileKey(EncryptionMethod method, char* file_key) {
-  auto key_bytes = static_cast<int>(KeySize(method) / 8);
-  OPENSSL_RET_NOT_OK(
-      RAND_bytes(reinterpret_cast<unsigned char*>(file_key), key_bytes),
-      "Failed to generate random key");
+Status GenerateFileKey(size_t key_size, char* file_key) {
+  OPENSSL_RET_NOT_OK(RAND_bytes(reinterpret_cast<unsigned char*>(file_key),
+                                static_cast<int>(key_size)),
+                     "Failed to generate random key");
   return Status::OK();
 }
 
@@ -256,6 +196,7 @@ Status Cipher(const EncryptionMethod method, const std::string& key,
   (void)encrypt_type;
   return Status::NotSupported("OpenSSL version < 1.0.2");
 #else
+  assert(key.size() == KeySize(method));
   evp_ctx_unique_ptr ctx(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
   if (UNLIKELY(!ctx)) {
     return Status::IOError("Failed to create cipher context.");
@@ -376,14 +317,88 @@ Status Cipher(const EncryptionMethod method, const std::string& key,
 }  // anonymous namespace
 
 size_t AESCTRCipherStream::BlockSize() {
-  return ROCKSDB_NAMESPACE::encryption::BlockSize(method_);
+  return ROCKSDB_NAMESPACE::BlockSize(method_);
 }
 
 Status AESCTRCipherStream::Cipher(uint64_t file_offset, char* data,
                                   size_t data_size, EncryptType encrypt_type) {
-  return ROCKSDB_NAMESPACE::encryption::Cipher(
+  return ROCKSDB_NAMESPACE::Cipher(
       method_, file_key_, initial_iv_high_, initial_iv_low_, file_offset, data,
       data_size, encrypt_type);
+}
+
+static std::unordered_map<std::string, OptionTypeInfo> aes_options_map = {
+    // TODO(yingchun): the relationship of "hex_instance_key" and "method"
+    //  has not been validated, it seems there is no chance to validate
+    //  this, now this is validated in CreateNewPrefix() and
+    //  CreateCipherStream().
+    {"hex_instance_key",
+     OptionTypeInfo(offsetof(struct AESEncryptionOptions, instance_key),
+                    OptionType::kString, OptionVerificationType::kNormal,
+                    OptionTypeFlags::kNone)
+         .SetParseFunc([](const ConfigOptions& /*opts*/,
+                          const std::string& /*name*/, const std::string& value,
+                          void* addr) {
+           if (value.empty()) {
+             return Status::InvalidArgument("'hex_instance_key' is not set");
+           }
+           std::string bin_instance_key;
+           if (!Slice(value).DecodeHex(&bin_instance_key)) {
+             return Status::InvalidArgument(
+                 "'hex_instance_key' is not a hexadecimal string in even "
+                 "number");
+           }
+           size_t key_size = bin_instance_key.size();
+           if (key_size != KeySize(EncryptionMethod::kAES128_CTR) &&
+               key_size != KeySize(EncryptionMethod::kAES192_CTR) &&
+               key_size != KeySize(EncryptionMethod::kAES256_CTR)) {
+             return Status::InvalidArgument(
+                 "'hex_instance_key' length is not valid");
+           }
+           auto target = static_cast<std::string*>(addr);
+           *target = bin_instance_key;
+           return Status::OK();
+         })
+         .SetSerializeFunc([](const ConfigOptions& /*opts*/,
+                              const std::string& /*name*/, const void* addr,
+                              std::string* value) {
+           std::string hex_instance_key =
+               Slice(*(static_cast<const std::string*>(addr))).ToString(true);
+           *value = hex_instance_key;
+           return Status::OK();
+         })
+         .SetPrepareFunc([](const ConfigOptions& /*opts*/,
+                            const std::string& /*name*/, void* addr) {
+           if (static_cast<const std::string*>(addr)->empty()) {
+             return Status::InvalidArgument("'hex_instance_key' is not set");
+           }
+           return Status::OK();
+         })},
+    {"method",
+     OptionTypeInfo::Enum(offsetof(struct AESEncryptionOptions, method),
+                          &encryption_method_enum_map)
+         .SetValidateFunc([](const DBOptions& /*db_opts*/,
+                             const ColumnFamilyOptions& /*cf_opts*/,
+                             const std::string& /*name*/, const void* addr) {
+           EncryptionMethod method =
+               *(static_cast<const EncryptionMethod*>(addr));
+           if (method == EncryptionMethod::kUnknown) {
+             return Status::InvalidArgument("'method' is not valid");
+           }
+           return Status::OK();
+         })
+         .SetPrepareFunc([](const ConfigOptions& /*opts*/,
+                            const std::string& /*name*/, void* addr) {
+           EncryptionMethod method =
+               *(static_cast<const EncryptionMethod*>(addr));
+           if (method == EncryptionMethod::kUnknown) {
+             return Status::InvalidArgument("'method' is not set");
+           }
+           return Status::OK();
+         })}};
+
+AESEncryptionProvider::AESEncryptionProvider() {
+  RegisterOptions("aes_options", &aes_options_, &aes_options_map);
 }
 
 bool AESEncryptionProvider::IsInstanceOf(const std::string& name) const {
@@ -405,19 +420,19 @@ Status AESEncryptionProvider::ReadEncryptionHeader(
                               std::to_string(static_cast<char>(method)));
   }
 
-  // 3. Read the encrypted file key and decrypt it.
-  char encrypted_file_key[key_size];
-  memcpy(encrypted_file_key, prefix.data() + kEncryptionHeaderMagicLength + 1,
-         key_size);
-  Status s = Cipher(method_, instance_key_, 0, 0, 0, encrypted_file_key,
-                    key_size, AESCTRCipherStream::EncryptType::kDecrypt);
+  // 3. Read the encrypted file key.
+  char file_key[key_size];
+  memcpy(file_key, prefix.data() + kEncryptionHeaderMagicLength + 1, key_size);
+
+  // 4. Decrypt the file key.
+  Status s = DecryptFileKey(file_key, key_size);
   if (UNLIKELY(!s.ok())) {
     return s;
   }
 
-  // 4. Fill the FileEncryptionInfo.
+  // 5. Fill the FileEncryptionInfo.
   file_info->method = method;
-  file_info->key.assign(encrypted_file_key, key_size);
+  file_info->key.assign(file_key, key_size);
   // TODO(yingchun): write a real IV to header_buf.
   static std::string fake_iv(AES_BLOCK_SIZE, '0');
   file_info->iv = fake_iv;
@@ -425,9 +440,9 @@ Status AESEncryptionProvider::ReadEncryptionHeader(
 }
 
 Status AESEncryptionProvider::WriteEncryptionHeader(char* header_buf) const {
-  auto method = EncryptionMethod(method_);
-  size_t key_size = KeySize(method_);
+  size_t key_size = KeySize(aes_options_.method);
   assert(key_size != 0);
+  assert(key_size % 8 == 0);
 
   // 1. Write the encryption header magic.
   size_t offset = 0;
@@ -435,40 +450,68 @@ Status AESEncryptionProvider::WriteEncryptionHeader(char* header_buf) const {
   offset += kEncryptionHeaderMagicLength;
 
   // 2. Write the encryption method.
-  header_buf[offset] = static_cast<char>(method_);
+  header_buf[offset] = static_cast<char>(aes_options_.method);
   offset += 1;
 
-  // 3. Generate a file key, encrypt and write it.
+  // 3. Generate a file key.
   char file_key[key_size];
-  Status s = GenerateFileKey(method, file_key);
+  Status s = GenerateFileKey(key_size, file_key);
   if (UNLIKELY(!s.ok())) {
     return s;
   }
-  s = Cipher(method_, instance_key_, 0, 0, 0, file_key, key_size,
-             AESCTRCipherStream::EncryptType::kEncrypt);
+
+  // 4. Encrypt the file key.
+  s = EncryptFileKey(file_key, key_size);
   if (UNLIKELY(!s.ok())) {
     return s;
   }
+
+  // 5. Write the encrypted file key.
   memcpy(header_buf + offset, file_key, key_size);
   offset += key_size;
 
-  // 4. Pad with 0.
+  // 6. Pad with 0.
   memset(header_buf + offset, 0, (64 - offset));
 
   // TODO(yingchun): write IV to header_buf.
   return Status::OK();
 }
 
+Status AESEncryptionProvider::EncryptFileKey(char* file_key,
+                                             size_t file_key_size) const {
+  return Cipher(aes_options_.method, aes_options_.instance_key, 0, 0, 0,
+                file_key, file_key_size,
+                AESCTRCipherStream::EncryptType::kEncrypt);
+}
+
+Status AESEncryptionProvider::DecryptFileKey(char* file_key,
+                                             size_t file_key_size) const {
+  return Cipher(aes_options_.method, aes_options_.instance_key, 0, 0, 0,
+                file_key, file_key_size,
+                AESCTRCipherStream::EncryptType::kDecrypt);
+}
+
+// TODO(yingchun): it would be better to do the validation when construct
+//  AESEncryptionProvider object.
+#define VALIDATE_AES_OPTIONS(options)                              \
+  if (UNLIKELY(options.instance_key.size() !=                      \
+               KeySize(options.method))) {                         \
+    return Status::InvalidArgument(                                \
+        "'hex_instance_key' length and 'method' are not matched"); \
+  }
+
 Status AESEncryptionProvider::CreateNewPrefix(const std::string& fname,
                                               char* prefix,
                                               size_t prefix_length) const {
-  if (prefix_length != GetPrefixLength()) {
+  VALIDATE_AES_OPTIONS(aes_options_);
+  if (UNLIKELY(prefix_length != GetPrefixLength())) {
     return IOStatus::Corruption("CreateNewPrefix with invalid prefix length: " +
                                 std::to_string(prefix_length) + " for " +
                                 fname);
   }
+
   auto s = WriteEncryptionHeader(prefix);
-  if (!s.ok()) {
+  if (UNLIKELY(!s.ok())) {
     s = Status::CopyAppendMessage(s, " in ", fname);
     return s;
   }
@@ -479,16 +522,18 @@ Status AESEncryptionProvider::CreateCipherStream(
     const std::string& fname, const EnvOptions& /*options*/, Slice& prefix,
     std::unique_ptr<BlockAccessCipherStream>* result) {
   assert(result != nullptr);
+  VALIDATE_AES_OPTIONS(aes_options_);
+
   FileEncryptionInfo file_info;
   Status s = ReadEncryptionHeader(prefix, &file_info);
-  if (!s.ok()) {
+  if (UNLIKELY(!s.ok())) {
     s = Status::CopyAppendMessage(s, " in ", fname);
     return s;
   }
   std::unique_ptr<AESCTRCipherStream> cipher_stream;
   s = NewAESCTRCipherStream(file_info.method, file_info.key, file_info.iv,
                             &cipher_stream);
-  if (!s.ok()) {
+  if (UNLIKELY(!s.ok())) {
     s = Status::CopyAppendMessage(s, " in ", fname);
     return s;
   }
@@ -518,11 +563,9 @@ Status NewAESCTRCipherStream(EncryptionMethod method,
       reinterpret_cast<const unsigned char*>(file_key_iv.data()));
   uint64_t iv_low = GetBigEndian64(reinterpret_cast<const unsigned char*>(
       file_key_iv.data() + sizeof(uint64_t)));
-  result->reset(new AESCTRCipherStream(method, file_key, iv_high, iv_low));
+  *result =
+      std::make_unique<AESCTRCipherStream>(method, file_key, iv_high, iv_low);
   return Status::OK();
 }
 
-}  // namespace encryption
 }  // namespace ROCKSDB_NAMESPACE
-
-#endif  // !ROCKSDB_LITE

@@ -16,19 +16,16 @@
 // under the License.
 
 #pragma once
-
-#ifndef ROCKSDB_LITE
-
-#include <string>
-
+#include <gtest/gtest.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+
+#include <string>
 
 #include "rocksdb/env_encryption.h"
 #include "util/string_util.h"
 
 namespace ROCKSDB_NAMESPACE {
-namespace encryption {
 class AESCTRCipherStream;
 
 using evp_ctx_unique_ptr =
@@ -37,12 +34,21 @@ using evp_ctx_unique_ptr =
 // The encryption method supported.
 enum class EncryptionMethod : int {
   kUnknown = 0,
-  kPlaintext = 1,
-  kAES128_CTR = 2,
-  kAES192_CTR = 3,
-  kAES256_CTR = 4,
+  kAES128_CTR = 1,
+  kAES192_CTR = 2,
+  kAES256_CTR = 3,
   // OpenSSL support SM4 after 1.1.1 release version.
-  kSM4_CTR = 5,
+  kSM4_CTR = 4,
+};
+
+static const std::unordered_map<std::string, EncryptionMethod>
+    encryption_method_enum_map = {{"", EncryptionMethod::kUnknown},
+                                  {"AES128CTR", EncryptionMethod::kAES128_CTR},
+                                  {"AES192CTR", EncryptionMethod::kAES192_CTR},
+                                  {"AES256CTR", EncryptionMethod::kAES256_CTR},
+#if OPENSSL_VERSION_NUMBER > 0x1010100fL && !defined(OPENSSL_NO_SM4)
+                                  {"SM4CTR", EncryptionMethod::kSM4_CTR}
+#endif
 };
 
 // Get the key size of the encryption method.
@@ -50,9 +56,6 @@ size_t KeySize(EncryptionMethod method);
 
 // Get the block size of the encryption method.
 size_t BlockSize(EncryptionMethod method);
-
-// Get the encryption method from string, case-insensitive.
-EncryptionMethod EncryptionMethodStringToEnum(const std::string& method);
 
 // Get the OpenSSL EVP_CIPHER according to the encryption method.
 const EVP_CIPHER* GetEVPCipher(EncryptionMethod method);
@@ -74,14 +77,14 @@ Status NewAESCTRCipherStream(EncryptionMethod method,
 // The cipher stream for AES-CTR encryption.
 class AESCTRCipherStream : public BlockAccessCipherStream {
  public:
-  AESCTRCipherStream(const EncryptionMethod method, const std::string& file_key,
+  AESCTRCipherStream(const EncryptionMethod method, std::string file_key,
                      uint64_t iv_high, uint64_t iv_low)
       : method_(method),
-        file_key_(file_key),
+        file_key_(std::move(file_key)),
         initial_iv_high_(iv_high),
         initial_iv_low_(iv_low) {}
 
-  ~AESCTRCipherStream() = default;
+  ~AESCTRCipherStream() override = default;
 
   size_t BlockSize() override;
 
@@ -123,13 +126,22 @@ class AESCTRCipherStream : public BlockAccessCipherStream {
   const uint64_t initial_iv_low_;
 };
 
+struct AESEncryptionOptions {
+  std::string instance_key;
+  EncryptionMethod method;
+  AESEncryptionOptions(std::string k = "",
+                       EncryptionMethod m = EncryptionMethod::kUnknown)
+      : instance_key(std::move(k)), method(m) {
+    assert(instance_key.size() == KeySize(method));
+  }
+};
+
 // TODO(yingchun): Is it possible to derive from CTREncryptionProvider?
 // The encryption provider for AES-CTR encryption.
 class AESEncryptionProvider : public EncryptionProvider {
  public:
-  AESEncryptionProvider(std::string instance_key, EncryptionMethod method)
-      : instance_key_(std::move(instance_key)), method_(method) {}
-  virtual ~AESEncryptionProvider() = default;
+  AESEncryptionProvider();
+  ~AESEncryptionProvider() override = default;
 
   static const char* kClassName() { return "AES"; }
   const char* Name() const override { return kClassName(); }
@@ -150,6 +162,11 @@ class AESEncryptionProvider : public EncryptionProvider {
       std::unique_ptr<BlockAccessCipherStream>* result) override;
 
  private:
+  FRIEND_TEST(AESEncryptionProviderDeterministicTest, DecryptFileKey);
+  FRIEND_TEST(AESEncryptionProviderDeterministicTest, EncryptFileKey);
+  FRIEND_TEST(AESEncryptionProviderTest, EncryptAndDecryptFileKey);
+  FRIEND_TEST(AESEncryptionProviderTest, WriteAndReadEncryptionHeader);
+
   struct FileEncryptionInfo {
     EncryptionMethod method = EncryptionMethod::kUnknown;
     std::string key;
@@ -160,11 +177,10 @@ class AESEncryptionProvider : public EncryptionProvider {
   Status ReadEncryptionHeader(Slice prefix,
                               FileEncryptionInfo* file_info) const;
 
-  const std::string instance_key_;
-  const EncryptionMethod method_;
+  Status EncryptFileKey(char* file_key, size_t file_key_size) const;
+  Status DecryptFileKey(char* file_key, size_t file_key_size) const;
+
+  AESEncryptionOptions aes_options_;
 };
 
-}  // namespace encryption
 }  // namespace ROCKSDB_NAMESPACE
-
-#endif  // !ROCKSDB_LITE
