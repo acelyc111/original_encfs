@@ -20,10 +20,9 @@ runs:
       path: rocksdb/plugin
   - name: ls
     run: |
-      cd ${{ github.workspace }} && pwd && ls -l
-      cd ${{ github.workspace }}/rocksdb && pwd && ls -l
-      cd ${{ github.workspace }}/rocksdb/plugin && pwd && ls -l
-      cd ${{ github.workspace }}/rocksdb/plugin/encfs && pwd && ls -l
+      cd /__w/encfs/encfs/rocksdb && pwd && ls -l
+      cd /__w/encfs/encfs/rocksdb/plugin && pwd && ls -l
+      cd /__w/encfs/encfs/rocksdb/plugin/encfs && pwd && ls -l
     shell: bash
   - name: Setup Environment Variables
     run: |-

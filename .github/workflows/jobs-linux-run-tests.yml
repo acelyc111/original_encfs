@@ -9,7 +9,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Build
-      working-directory: ${{ github.workspace }}/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         make V=1 J=1 -j4
       shell: bash
@@ -34,7 +34,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
-    - run: "(cd ${{ github.workspace }}/rocksdb && mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5)"
+    - run: "(cd /__w/encfs/encfs/rocksdb && mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5)"
     - uses: "./.github/actions/post-steps"
   build-linux-gcc-7-with-folly:
     runs-on: ubuntu-latest
@@ -57,7 +57,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
     - name: Build
-      working-directory: ${{ github.workspace }}/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         USE_FOLLY_LITE=1 CC=gcc-7 CXX=g++-7 V=1 make -j4 all
     - uses: "./.github/actions/post-steps"
@@ -84,7 +84,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
-      working-directory: ${{ github.workspace }}/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DWITH_BENCHMARK=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
     - uses: "./.github/actions/post-steps"
@@ -104,7 +104,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
-      working-directory: ${{ github.workspace }}/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         export ENCRYPTED_ENV="${{ matrix.test_enc_env }}"
         mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
@@ -125,7 +125,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
-      working-directory: ${{ github.workspace }}/rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5
         export TEST_FS_URI="${{ matrix.test_fs_uri }}"
