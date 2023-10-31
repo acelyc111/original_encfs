@@ -34,7 +34,7 @@ jobs:
     - name: Download clang-format-diff.py
       run: wget https://raw.githubusercontent.com/llvm/llvm-project/release/12.x/clang/tools/clang-format/clang-format-diff.py
     - name: Check format
-      run: git diff upstream/main | python clang-format-diff.py -p 1
+      run: git diff upstream/main -- | python clang-format-diff.py -p 1
       shell: bash
     - name: Simple source code checks
       working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
