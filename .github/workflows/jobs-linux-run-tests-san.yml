@@ -51,5 +51,5 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DASSERT_STATUS_CHECKED=ON -DROCKSDB_BUILD_SHARED=OFF -DROCKSDB_NAMESPACE=alternative_rocksdb_ns -DMODIFY_NPHASH=1 -DTEST_UINT128_COMPAT=1 .. && make V=1 -j5 encfs_test && ./encfs_test
+      run: mkdir build && cd build && cmake -DASSERT_STATUS_CHECKED=ON -DROCKSDB_BUILD_SHARED=OFF -DROCKSDB_NAMESPACE=alternative_rocksdb_ns -DMODIFY_NPHASH=1 -DTEST_UINT128_COMPAT=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 encfs_test && ./encfs_test
     - uses: "./.github/actions/post-steps"
