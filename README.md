@@ -112,6 +112,6 @@ int main() {
   return 0;
 }
 EOF
-$ g++ -std=c++17 -o test test.cpp -lrocksdb -llz4 -lpthread
+$ g++ -std=c++17 -o test test.cpp -lrocksdb -lpthread -llz4 -lcrypto -u encfs_reg
 $ ./tmp
 ```
