@@ -25,7 +25,7 @@
 #include "rocksdb/env_encryption.h"
 #include "util/string_util.h"
 
-namespace rocksdb {
+namespace ROCKSDB_NAMESPACE {
 class AESCTRCipherStream;
 
 using evp_ctx_unique_ptr =
@@ -183,4 +183,4 @@ class AESEncryptionProvider : public EncryptionProvider {
   AESEncryptionOptions aes_options_;
 };
 
-}  // namespace rocksdb
+}  // namespace ROCKSDB_NAMESPACE

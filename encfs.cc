@@ -38,8 +38,7 @@ extern "C" FactoryFunc<EncryptionProvider> encfs_reg;
 // Match "AES"
 FactoryFunc<EncryptionProvider> encfs_reg =
     ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
-        ObjectLibrary::PatternEntry(
-            AESEncryptionProvider::kClassName(), true),
+        ObjectLibrary::PatternEntry(AESEncryptionProvider::kClassName(), true),
         [](const std::string& /*uri*/,
            std::unique_ptr<EncryptionProvider>* guard,
            std::string* /*errmsg*/) {
@@ -322,9 +321,9 @@ size_t AESCTRCipherStream::BlockSize() {
 
 Status AESCTRCipherStream::Cipher(uint64_t file_offset, char* data,
                                   size_t data_size, EncryptType encrypt_type) {
-  return ROCKSDB_NAMESPACE::Cipher(
-      method_, file_key_, initial_iv_high_, initial_iv_low_, file_offset, data,
-      data_size, encrypt_type);
+  return ROCKSDB_NAMESPACE::Cipher(method_, file_key_, initial_iv_high_,
+                                   initial_iv_low_, file_offset, data,
+                                   data_size, encrypt_type);
 }
 
 static std::unordered_map<std::string, OptionTypeInfo> aes_options_map = {
@@ -493,11 +492,10 @@ Status AESEncryptionProvider::DecryptFileKey(char* file_key,
 
 // TODO(yingchun): it would be better to do the validation when construct
 //  AESEncryptionProvider object.
-#define VALIDATE_AES_OPTIONS(options)                              \
-  if (UNLIKELY(options.instance_key.size() !=                      \
-               KeySize(options.method))) {                         \
-    return Status::InvalidArgument(                                \
-        "'hex_instance_key' length and 'method' are not matched"); \
+#define VALIDATE_AES_OPTIONS(options)                                     \
+  if (UNLIKELY(options.instance_key.size() != KeySize(options.method))) { \
+    return Status::InvalidArgument(                                       \
+        "'hex_instance_key' length and 'method' are not matched");        \
   }
 
 Status AESEncryptionProvider::CreateNewPrefix(const std::string& fname,
