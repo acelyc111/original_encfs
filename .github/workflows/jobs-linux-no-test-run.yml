@@ -124,7 +124,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: LIB_MODE=static CC=gcc-11 CXX=g++-11 && mkdir build && cd build && cmake -DWITH_BENCHMARK=ON .. && make V=1 -j4
+      run: LIB_MODE=static CC=gcc-11 CXX=g++-11 && mkdir build && cd build && cmake -DWITH_BENCHMARK=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j4
     - uses: "./.github/actions/post-steps"
   build-linux-arm-cmake-no_test_run:
     runs-on: ubuntu-latest
@@ -147,13 +147,13 @@ jobs:
 #      run: |-
 #        mkdir build
 #        cd build
-#        cmake -DCMAKE_BUILD_TYPE=Release -DWITH_TESTS=0 -DWITH_GFLAGS=1 -DWITH_BENCHMARK_TOOLS=0 -DWITH_TOOLS=0 -DWITH_CORE_TOOLS=1 ..
+#        cmake -DCMAKE_BUILD_TYPE=Release -DWITH_TESTS=0 -DWITH_GFLAGS=1 -DWITH_BENCHMARK_TOOLS=0 -DWITH_TOOLS=0 -DWITH_CORE_TOOLS=1 -DROCKSDB_PLUGINS=encfs ..
 #        make -j4
 #    - name: Build Java with cmake
 #      run: |-
 #        rm -rf build
 #        mkdir build
 #        cd build
-#        cmake -DJNI=1 -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=1 ..
+#        cmake -DJNI=1 -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs ..
 #        make -j4 rocksdb rocksdbjni
 #    - uses: "./.github/actions/post-steps"

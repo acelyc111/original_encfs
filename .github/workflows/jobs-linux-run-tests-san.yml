@@ -10,7 +10,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DWITH_ASAN=ON .. && make V=1 -j5 && ctest -j5 -V
+      run: mkdir build && cd build && cmake -DWITH_ASAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-ubsan:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DWITH_UBSAN=ON .. && make V=1 -j5 && ctest -j5 -V
+      run: mkdir build && cd build && cmake -DWITH_UBSAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-mini-tsan:
     runs-on: ubuntu-latest
@@ -36,7 +36,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DWITH_TSAN=ON .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./encfs_test
+      run: mkdir build && cd build && cmake -DWITH_TSAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./encfs_test
     - uses: "./.github/actions/post-steps"
   build-linux-static_lib-alt_namespace-status_checked:
     runs-on: ubuntu-latest

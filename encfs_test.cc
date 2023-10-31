@@ -408,7 +408,9 @@ class AESEncryptionProviderTestBase {
     std::string hex_instance_key(2 * KeySize(method_), 'A');
     std::string uri = "id=AES;hex_instance_key=" + hex_instance_key +
                       ";method=" + EnumToEncryptionMethodString(method_);
-    EncryptionProvider::CreateFromString(ConfigOptions(), uri, &provider_);
+    Status s =
+        EncryptionProvider::CreateFromString(ConfigOptions(), uri, &provider_);
+    assert(s.ok());
   }
 
  protected:

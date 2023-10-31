@@ -44,5 +44,5 @@ jobs:
         echo "JAVA_HOME=${JAVA_HOME}"
         which java && java -version
         which javac && javac -version
-        mkdir build && cd build && cmake -DJNI=1 -DWITH_GFLAGS=OFF .. -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_SYSTEM_NAME=Windows && make -j4 rocksdb rocksdbjni
+        mkdir build && cd build && cmake -DJNI=1 -DWITH_GFLAGS=OFF -DROCKSDB_PLUGINS=encfs .. -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_SYSTEM_NAME=Windows && make -j4 rocksdb rocksdbjni
     - uses: "./.github/actions/post-steps"

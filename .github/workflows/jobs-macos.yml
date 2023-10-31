@@ -30,7 +30,7 @@ jobs:
     - uses: "./.github/actions/pre-steps-macos"
     - name: cmake generate project file
       working-directory: /Users/runner/work/encfs/encfs/rocksdb
-      run: ulimit -S -n `ulimit -H -n` && mkdir build && cd build && cmake -DWITH_GFLAGS=1 ..
+      run: ulimit -S -n `ulimit -H -n` && mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs ..
     - name: Build tests
       working-directory: /Users/runner/work/encfs/encfs/rocksdb
       run: cd build && make V=1 -j4
@@ -51,7 +51,7 @@ jobs:
     - uses: "./.github/actions/pre-steps-macos"
     - name: cmake generate project file
       working-directory: /Users/runner/work/encfs/encfs/rocksdb
-      run: ulimit -S -n `ulimit -H -n` && mkdir build && cd build && cmake -DWITH_GFLAGS=1 ..
+      run: ulimit -S -n `ulimit -H -n` && mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs ..
     - name: Build tests
       working-directory: /Users/runner/work/encfs/encfs/rocksdb
       run: cd build && make V=1 -j4
