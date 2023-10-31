@@ -323,7 +323,7 @@ class AESCTRCipherStreamTest
     int final_output_size = 0;
     OPENSSL_RET_NOT_OK(
         EVP_EncryptFinal(ctx.get(), ciphertext.get() + output_size,
-                         &final_output_size),
+                               &final_output_size),
         "EVP_EncryptFinal failed.");
     CHECK_EQ(kMaxSize, static_cast<size_t>(output_size + final_output_size));
     return Status::OK();

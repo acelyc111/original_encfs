@@ -33,10 +33,10 @@ jobs:
     steps:
     # Just build partial tests to reduce disk space usage
     - uses: actions/checkout@v4
+    - uses: "./.github/actions/pre-steps"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      uses: "./.github/actions/pre-steps"
-    - run: mkdir build && cd build && cmake -DWITH_TSAN=ON .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./encfs_test
+      run: mkdir build && cd build && cmake -DWITH_TSAN=ON .. && make V=1 -j5 && ./env_basic_test && ./io_posix_test && ./mock_env_test && ./encfs_test
     - uses: "./.github/actions/post-steps"
   build-linux-static_lib-alt_namespace-status_checked:
     runs-on: ubuntu-latest
