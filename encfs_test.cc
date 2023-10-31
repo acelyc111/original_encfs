@@ -287,7 +287,7 @@ class AESCTRCipherStreamTest
     : public testing::TestWithParam<
           std::tuple<AESCTRCipherStream::EncryptType, EncryptionMethod>> {
  public:
-  int kMaxSize;
+  size_t kMaxSize;
   std::unique_ptr<unsigned char[]> plaintext;
   std::unique_ptr<unsigned char[]> ciphertext;
   const unsigned char* current_iv = nullptr;

@@ -107,7 +107,7 @@ jobs:
       working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         export ENCRYPTED_ENV="${{ matrix.test_enc_env }}"
-        mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
+        mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
     - uses: "./.github/actions/post-steps"
   build-linux-encrypted_env-openssl-special:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
     - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
       run: |-
-        mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5
+        mkdir build && cd build && cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 env_basic_test env_test
         export TEST_FS_URI="${{ matrix.test_fs_uri }}"
         ./env_basic_test --gtest_filter=*CustomEnv*
         ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem

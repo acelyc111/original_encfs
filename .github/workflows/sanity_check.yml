@@ -8,6 +8,7 @@ jobs:
     name: Check TARGETS file and code format
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - name: Clone rocksdb
       run: |
         git clone --depth 1 --branch v8.5.3 https://github.com/facebook/rocksdb.git
