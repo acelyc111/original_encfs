@@ -1,6 +1,6 @@
-# dedupfs
+# encfs
 
-The `AESEncryptionProvider` of `EncryptionFileSystem` is an encryption plugin with RocksDB. It depends on OpenSSL to show how an external plugin can bring its dependencies into the RocksDB build. It provides a factory function in a header file to show integration with RocksDB header includes. It can also be enabled in text-based options to demonstrate use of the static registration framework.
+The `AESEncryptionProvider` of `EncryptionFileSystem` is an encryption plugin for RocksDB. It depends on OpenSSL to show how an external plugin can bring its dependencies into the RocksDB build. It provides a factory function in a header file to show integration with RocksDB header includes. It can also be enabled in text-based options to demonstrate use of the static registration framework.
 
 ## Build
 
@@ -15,7 +15,7 @@ Next, we can build and install RocksDB with this plugin as follows:
 
 ```
 $ popd
-$ make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="encfs" make -j48 db_bench install
+$ make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="encfs" make -j32 db_bench install
 ```
 
 Build by cmake and check the functionality:
@@ -25,8 +25,9 @@ Build by cmake and check the functionality:
 set -ex
 
 # 1. build
-#mkdir build && cd build
-#cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs ..
+mkdir build && cd build
+cmake -DWITH_LZ4=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs ..
+make -j32
 
 # 2. run encfs_test
 ./encfs_test
@@ -71,10 +72,11 @@ done
 
 ## Tool usage
 
-For RocksDB binaries (such as the `db_bench` we built above), the plugin can be enabled through configuration. `db_bench` in particular takes a `--fs_uri` where we can specify "encfs" , which is the name registered by this plugin. Example usage:
+For RocksDB binaries (such as the `ldb`, `db_bench` we built above), the plugin can be enabled through configuration. `ldb` and `db_bench` in particular takes a `--fs_uri` where we can specify "encfs" , which is the name registered by this plugin. Example usage:
 
 ```
-$ ./db_bench --benchmarks=fillrandom --fs_uri="provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR};id=EncryptedFileSystem" --compression_type=none
+$ ./tools/ldb --fs_uri="provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem" --db=/tmp/rocksdbtest-1000/dbbench/ scan --hex | head
+$ ./db_bench --benchmarks=fillrandom --fs_uri="provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem" --compression_type=lz4
 ```
 
 ## Application usage
@@ -82,16 +84,34 @@ $ ./db_bench --benchmarks=fillrandom --fs_uri="provider={id=AES;hex_instance_key
 The plugin's interface is also exposed to applications, which can enable it either through configuration or through code. Here is an example instantiating the plugin in code.
 
 ```
-$ cat <<EOF >./tmp.cc
-#include <rocksdb/plugin/encfs/encfs.h>
+$ cat <<EOF >./test.cpp
+#include <cstdio>
+#include <memory>
+
+#include <rocksdb/convenience.h>
+#include <rocksdb/env.h>
+#include <rocksdb/status.h>
 
 int main() {
-  std::string fs_uri = "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR}";
-  Status s = Env::CreateFromUri(config_options, "", fs_uri, &raw_env, &env_guard)
+  std::string fs_uri = "provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem";
+  rocksdb::Env* raw_env = nullptr;
+  std::shared_ptr<rocksdb::Env> env_guard;
+  rocksdb::Status s = rocksdb::Env::CreateFromUri(rocksdb::ConfigOptions(), /*env_uri=*/ "", fs_uri, &raw_env, &env_guard);
+  if (!s.ok()) {
+    fprintf(stderr, "fs_uri='%s'\n", fs_uri.c_str());
+    fprintf(stderr, "CreateFromUri() failed with error %s\n", s.ToString().c_str());
+    return 1;
+  }
+
+  s = rocksdb::WriteStringToFile(raw_env, "test_data", "test.txt", /*should_sync=*/ true);
+  if (!s.ok()) {
+    fprintf(stderr, "WriteStringToFile() failed with error %s\n", s.ToString().c_str());
+    return 1;
+  }
+
   return 0;
 }
 EOF
-$ g++ $(pkg-config --cflags rocksdb) -c ./tmp.cc -o ./tmp.o
-$ g++ $(pkg-config --static --libs rocksdb) ./tmp.o -o ./tmp
+$ g++ -std=c++17 -o test test.cpp -lrocksdb -llz4 -lpthread
 $ ./tmp
 ```
