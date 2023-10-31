@@ -26,7 +26,7 @@
 #include "util/string_util.h"
 
 namespace ROCKSDB_NAMESPACE {
-    class AESCTRCipherStream;
+class AESCTRCipherStream;
 
 using evp_ctx_unique_ptr =
     std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>;
