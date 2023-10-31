@@ -20,7 +20,7 @@ jobs:
         # Relative path under $GITHUB_WORKSPACE to place the repository
         path: rocksdb/plugin/encfs
     - name: Fetch from upstream
-      working-directory: /__w/encfs/encfs/rocksdb/plugin/encfs
+      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: |
         git remote add upstream https://github.com/acelyc111/encfs.git && git fetch upstream
     - name: Setup Python
@@ -32,11 +32,11 @@ jobs:
     - name: Download clang-format-diff.py
       run: wget https://raw.githubusercontent.com/llvm/llvm-project/release/12.x/clang/tools/clang-format/clang-format-diff.py
     - name: Check format
-      working-directory: /__w/encfs/encfs/rocksdb/plugin/encfs
+      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: |
         sed -i 's/facebook\/rocksdb/acelyc111\/encfs/g' ../../build_tools/format-diff.sh
         VERBOSE_CHECK=1 ../../build_tools/format-diff.sh -c
       shell: bash
     - name: Simple source code checks
-      working-directory: /__w/encfs/encfs/rocksdb/plugin/encfs
+      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: ../../build_tools/check-sources.sh
