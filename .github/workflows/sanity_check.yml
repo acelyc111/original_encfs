@@ -38,7 +38,7 @@ jobs:
       working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: |
         sed -i 's/facebook\/rocksdb/acelyc111\/encfs/g' ../../build_tools/format-diff.sh
-#        VERBOSE_CHECK=1 ../../build_tools/format-diff.sh -c
+        VERBOSE_CHECK=1 ../../build_tools/format-diff.sh -c
       shell: bash
     - name: Simple source code checks
       working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
