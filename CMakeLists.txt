@@ -19,6 +19,7 @@ cmake_minimum_required(VERSION 3.10)
 
 find_package(OpenSSL REQUIRED)
 set(encfs_LIBS ${OPENSSL_CRYPTO_LIBRARY} PARENT_SCOPE)
+set(encfs_INCLUDE_PATHS ${OPENSSL_INCLUDE_DIR} PARENT_SCOPE)
 
 set(encfs_SOURCES "encfs.cc" PARENT_SCOPE)
 set(encfs_HEADERS "encfs.h" PARENT_SCOPE)
