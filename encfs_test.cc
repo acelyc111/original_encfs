@@ -423,7 +423,7 @@ class AESEncryptionProviderTest
       public testing::TestWithParam<EncryptionMethod> {
  public:
   AESEncryptionProviderTest() : AESEncryptionProviderTestBase(GetParam()) {}
-};
+   };
 
 TEST_P(AESEncryptionProviderTest, CreateFromString) {
   // Test EncryptionProvider::CreateFromString.

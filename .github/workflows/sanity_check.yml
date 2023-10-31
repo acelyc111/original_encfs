@@ -32,13 +32,9 @@ jobs:
     - name: Install argparse
       run: pip install argparse
     - name: Download clang-format-diff.py
-      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: wget https://raw.githubusercontent.com/llvm/llvm-project/release/12.x/clang/tools/clang-format/clang-format-diff.py
     - name: Check format
-      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
-      run: |
-        sed -i 's/facebook\/rocksdb/acelyc111\/encfs/g' ../../build_tools/format-diff.sh
-        VERBOSE_CHECK=1 ../../build_tools/format-diff.sh -c
+      run: git diff upstream/main | python clang-format-diff.py -p 1
       shell: bash
     - name: Simple source code checks
       working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs

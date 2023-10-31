@@ -37,7 +37,7 @@ namespace ROCKSDB_NAMESPACE {
 extern "C" FactoryFunc<EncryptionProvider> encfs_reg;
 // Match "AES"
 FactoryFunc<EncryptionProvider> encfs_reg =
-    ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
+          ObjectLibrary::Default()->AddFactory<EncryptionProvider>(
         ObjectLibrary::PatternEntry(AESEncryptionProvider::kClassName(), true),
         [](const std::string& /*uri*/,
            std::unique_ptr<EncryptionProvider>* guard,
