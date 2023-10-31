@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    - name: Install Dependencies
+      run: python -m pip install --upgrade pip
+    - name: Install argparse
+      run: pip install argparse
     - name: Clone rocksdb
       run: |
         git clone --depth 1 --branch v8.5.3 https://github.com/facebook/rocksdb.git
@@ -23,17 +31,11 @@ jobs:
       working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: |
         git remote add upstream https://github.com/acelyc111/encfs.git && git fetch upstream
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    - name: Install Dependencies
-      run: python -m pip install --upgrade pip
-    - name: Install argparse
-      run: pip install argparse
     - name: Download clang-format-diff.py
+      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: wget https://raw.githubusercontent.com/llvm/llvm-project/release/12.x/clang/tools/clang-format/clang-format-diff.py
     - name: Check format
+      working-directory: /home/runner/work/encfs/encfs/rocksdb/plugin/encfs
       run: git diff upstream/main -- | python clang-format-diff.py -p 1
       shell: bash
     - name: Simple source code checks
