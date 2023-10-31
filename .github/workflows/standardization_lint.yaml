@@ -17,7 +17,6 @@
 ---
 name: Standardization Lint
 on: [pull_request]
-
 jobs:
   license_check:
     name: Check License
