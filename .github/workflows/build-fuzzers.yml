@@ -8,14 +8,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build
-      run: |
-        cd /__w/encfs/encfs/rocksdb
-        CC=clang-13 CXX=clang++-13 USE_CLANG=1 make -j4 static_lib
-      shell: bash
+    - name: Build rocksdb
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: CC=clang-13 CXX=clang++-13 USE_CLANG=1 make -j4 static_lib
     - name: Build fuzzers
-      run: |
-        cd /__w/encfs/encfs/rocksdb
-        cd fuzz && make sst_file_writer_fuzzer db_fuzzer db_map_fuzzer
-      shell: bash
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: cd fuzz && make sst_file_writer_fuzzer db_fuzzer db_map_fuzzer
     - uses: "./.github/actions/post-steps"

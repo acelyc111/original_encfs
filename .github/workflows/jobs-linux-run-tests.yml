@@ -19,13 +19,14 @@ jobs:
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - run: echo "skip folly related actions"
-#    - uses: actions/checkout@v4
-#    - uses: "./.github/actions/pre-steps"
-#    - uses: "./.github/actions/setup-folly"
-#    - uses: "./.github/actions/build-folly"
-#    - run: "(mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5)"
-#    - uses: "./.github/actions/post-steps"
+    - uses: actions/checkout@v4
+    - uses: "./.github/actions/pre-steps"
+    - uses: "./.github/actions/setup-folly"
+    - uses: "./.github/actions/build-folly"
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
+    - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly-lite-no-test:
     runs-on: ubuntu-latest
     container:
@@ -34,20 +35,23 @@ jobs:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
     - uses: "./.github/actions/setup-folly"
-    - run: "(cd /__w/encfs/encfs/rocksdb && mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5)"
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DUSE_FOLLY_LITE=1 -DWITH_GFLAGS=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5
     - uses: "./.github/actions/post-steps"
   build-linux-gcc-7-with-folly:
     runs-on: ubuntu-latest
     container:
       image: zjay437/rocksdb:0.6
     steps:
-    - run: echo "skip folly related actions"
-#    - uses: actions/checkout@v4
-#    - uses: "./.github/actions/pre-steps"
-#    - uses: "./.github/actions/setup-folly"
-#    - uses: "./.github/actions/build-folly"
-#    - run: USE_FOLLY=1 LIB_MODE=static CC=gcc-7 CXX=g++-7 V=1 make -j4 check
-#    - uses: "./.github/actions/post-steps"
+    - uses: actions/checkout@v4
+    - uses: "./.github/actions/pre-steps"
+    - uses: "./.github/actions/setup-folly"
+    - uses: "./.github/actions/build-folly"
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: USE_FOLLY=1 LIB_MODE=static CC=gcc-7 CXX=g++-7 V=1 make -j4 check
+    - uses: "./.github/actions/post-steps"
   build-linux-gcc-7-with-folly-lite-no-test:
     runs-on: ubuntu-latest
     container:
@@ -58,8 +62,7 @@ jobs:
     - uses: "./.github/actions/setup-folly"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: |-
-        USE_FOLLY_LITE=1 CC=gcc-7 CXX=g++-7 V=1 make -j4 all
+      run: USE_FOLLY_LITE=1 CC=gcc-7 CXX=g++-7 V=1 make -j4 all
     - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly-coroutines:
     runs-on: ubuntu-latest
@@ -69,13 +72,14 @@ jobs:
       CC: gcc-10
       CXX: g++-10
     steps:
-    - run: echo "skip folly related actions"
-#    - uses: actions/checkout@v4
-#    - uses: "./.github/actions/pre-steps"
-#    - uses: "./.github/actions/setup-folly"
-#    - uses: "./.github/actions/build-folly"
-#    - run: "(mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5)"
-#    - uses: "./.github/actions/post-steps"
+    - uses: actions/checkout@v4
+    - uses: "./.github/actions/pre-steps"
+    - uses: "./.github/actions/setup-folly"
+    - uses: "./.github/actions/build-folly"
+    - name: Build
+      working-directory: /__w/encfs/encfs/rocksdb
+      run: mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
+    - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-benchmark:
     runs-on: ubuntu-latest
     container:
@@ -85,8 +89,7 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
-      run: |-
-        mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DWITH_BENCHMARK=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
+      run: mkdir build && cd build && cmake -DWITH_GFLAGS=1 -DWITH_BENCHMARK=1 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
     - uses: "./.github/actions/post-steps"
   build-linux-encrypted_env-openssl-basic:
     runs-on: ubuntu-latest
@@ -96,10 +99,10 @@ jobs:
       fail-fast: false
       matrix:
         test_enc_env:
-          - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR
-          - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES192CTR
-          - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR
-          - id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR
+          - method=AES128CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF
+          - method=AES192CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          - method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          - method=SM4CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
@@ -117,10 +120,10 @@ jobs:
       fail-fast: false
       matrix:
         test_fs_uri:
-          - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=AES128CTR};id=EncryptedFileSystem
-          - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES192CTR};id=EncryptedFileSystem
-          - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;method=AES256CTR};id=EncryptedFileSystem
-          - provider={id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF;method=SM4CTR};id=EncryptedFileSystem
+          - provider={method=AES128CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem
+          - provider={method=AES192CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem
+          - provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem
+          - provider={method=SM4CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"

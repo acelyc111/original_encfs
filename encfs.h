@@ -17,13 +17,11 @@
 
 #pragma once
 #include <gtest/gtest.h>
-#include <openssl/aes.h>
 #include <openssl/evp.h>
 
 #include <string>
 
 #include "rocksdb/env_encryption.h"
-#include "util/string_util.h"
 
 namespace ROCKSDB_NAMESPACE {
 class AESCTRCipherStream;

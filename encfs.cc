@@ -17,20 +17,16 @@
 
 #include "encfs.h"
 
+#include <openssl/aes.h>
 #include <openssl/err.h>
-#include <openssl/opensslv.h>
 #include <openssl/rand.h>
 
 #include <algorithm>
-#include <limits>
 
-#include "file/filename.h"
 #include "port/likely.h"
 #include "port/port.h"
-#include "rocksdb/configurable.h"
 #include "rocksdb/utilities/object_registry.h"
 #include "rocksdb/utilities/options_type.h"
-#include "test_util/sync_point.h"
 
 namespace ROCKSDB_NAMESPACE {
 

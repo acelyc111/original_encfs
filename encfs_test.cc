@@ -18,12 +18,12 @@
 #include "encfs.h"
 
 #include <gtest/gtest.h>
+#include <openssl/aes.h>
 
 #include <algorithm>
 
 #include "fuzz/util.h"
-#include "port/stack_trace.h"
-#include "rocksdb/convenience.h"
+#include "port/likely.h"
 #include "rocksdb/utilities/options_type.h"
 #include "test_util/testharness.h"
 #include "test_util/testutil.h"

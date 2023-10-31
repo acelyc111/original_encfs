@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Build
+    - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         make V=1 -j4 LIB_MODE=shared release
@@ -36,7 +36,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/pre-steps"
-    - name: Test
+    - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
       run: |-
         USE_RTTI=1 DEBUG_LEVEL=0 make V=1 -j4 static_lib tools db_bench
@@ -144,12 +144,14 @@ jobs:
 #        which java && java -version
 #        which javac && javac -version
 #    - name: Build with cmake
+#      working-directory: /__w/encfs/encfs/rocksdb
 #      run: |-
 #        mkdir build
 #        cd build
 #        cmake -DCMAKE_BUILD_TYPE=Release -DWITH_TESTS=0 -DWITH_GFLAGS=1 -DWITH_BENCHMARK_TOOLS=0 -DWITH_TOOLS=0 -DWITH_CORE_TOOLS=1 -DROCKSDB_PLUGINS=encfs ..
 #        make -j4
 #    - name: Build Java with cmake
+#      working-directory: /__w/encfs/encfs/rocksdb
 #      run: |-
 #        rm -rf build
 #        mkdir build
