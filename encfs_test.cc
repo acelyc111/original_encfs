@@ -325,7 +325,7 @@ class AESCTRCipherStreamTest
         EVP_EncryptFinal(ctx.get(), ciphertext.get() + output_size,
                          &final_output_size),
         "EVP_EncryptFinal failed.");
-    CHECK_EQ(kMaxSize, output_size + final_output_size);
+    CHECK_EQ(kMaxSize, static_cast<size_t>(output_size + final_output_size));
     return Status::OK();
   }
 
