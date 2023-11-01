@@ -10,7 +10,13 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DWITH_ASAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
+      run: |-
+        mkdir build && cd build && cmake -DWITH_ASAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 encfs_test env_basic_test env_test
+        TEST_FS_URI="provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem"
+        ./encfs_test
+        ./env_basic_test --gtest_filter=*CustomEnv*
+        ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-ubsan:
     runs-on: ubuntu-latest
@@ -24,7 +30,13 @@ jobs:
     - uses: "./.github/actions/pre-steps"
     - name: Build and test
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DWITH_UBSAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5 -V
+      run: |-
+        mkdir build && cd build && cmake -DWITH_UBSAN=ON -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 encfs_test env_basic_test env_test
+        TEST_FS_URI="provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem"
+        ./encfs_test
+        ./env_basic_test --gtest_filter=*CustomEnv*
+        ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-clang10-mini-tsan:
     runs-on: ubuntu-latest
