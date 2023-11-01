@@ -25,7 +25,13 @@ jobs:
     - uses: "./.github/actions/build-folly"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
+      run: |-
+        mkdir build && cd build && cmake -DUSE_FOLLY=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 encfs_test env_basic_test env_test
+        TEST_FS_URI="provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem"
+        ./encfs_test
+        ./env_basic_test --gtest_filter=*CustomEnv*
+        ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-folly-lite-no-test:
     runs-on: ubuntu-latest
@@ -50,7 +56,13 @@ jobs:
     - uses: "./.github/actions/build-folly"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: USE_FOLLY=1 LIB_MODE=static CC=gcc-7 CXX=g++-7 V=1 make -j4 check
+      run: |-
+        USE_FOLLY=1 LIB_MODE=static CC=gcc-7 CXX=g++-7 V=1 make -j4 encfs_test env_basic_test env_test
+        TEST_FS_URI="provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem"
+        ./encfs_test
+        ./env_basic_test --gtest_filter=*CustomEnv*
+        ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-gcc-7-with-folly-lite-no-test:
     runs-on: ubuntu-latest
@@ -78,7 +90,13 @@ jobs:
     - uses: "./.github/actions/build-folly"
     - name: Build
       working-directory: /__w/encfs/encfs/rocksdb
-      run: mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 && ctest -j5
+      run: |-
+        mkdir build && cd build && cmake -DUSE_COROUTINES=1 -DWITH_GFLAGS=1 -DROCKSDB_BUILD_SHARED=0 -DROCKSDB_PLUGINS=encfs .. && make V=1 -j5 encfs_test env_basic_test env_test
+        TEST_FS_URI="provider={method=AES256CTR;id=AES;hex_instance_key=0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF};id=EncryptedFileSystem"
+        ./encfs_test
+        ./env_basic_test --gtest_filter=*CustomEnv*
+        ./env_test --gtest_filter=CreateEnvTest.CreateEncryptedFileSystem
+      shell: bash
     - uses: "./.github/actions/post-steps"
   build-linux-cmake-with-benchmark:
     runs-on: ubuntu-latest
